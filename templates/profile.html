@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Profile - HireHub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>My Profile</h4>
+            </div>
+            <div class="card-body">
+                <div id="loading" class="text-center">
+                    <div class="spinner-border" role="status"></div>
+                </div>
+
+                <div id="profile-content" style="display: none;">
+                    <div class="mb-3">
+                        <strong>Username:</strong> <span id="username"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Email:</strong> <span id="email"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Role:</strong> <span id="role" class="badge bg-primary"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Phone:</strong> <span id="phone"></span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Member Since:</strong> <span id="created_at"></span>
+                    </div>
+
+                    <hr>
+
+                    <button class="btn btn-primary" onclick="alert('Profile update feature - Coming soon!')">Edit Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadProfile() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login/';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const user = await response.json();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('profile-content').style.display = 'block';
+
+            document.getElementById('username').textContent = user.username;
+            document.getElementById('email').textContent = user.email;
+            document.getElementById('role').textContent = user.role.replace('_', ' ').toUpperCase();
+            document.getElementById('phone').textContent = user.phone || 'Not provided';
+            document.getElementById('created_at').textContent = new Date(user.created_at).toLocaleDateString();
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loading').innerHTML = '<p class="text-danger">Error loading profile.</p>';
+        }
+    }
+
+    loadProfile();
+</script>
+{% endblock %}

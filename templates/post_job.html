@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Post Job - HireHub{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4>Post a New Job</h4>
+            </div>
+            <div class="card-body">
+                <form id="postJobForm">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Job Title</label>
+                        <input type="text" class="form-control" id="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="company_name" class="form-label">Company Name</label>
+                        <input type="text" class="form-control" id="company_name" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="job_type" class="form-label">Job Type</label>
+                            <select class="form-select" id="job_type" required>
+                                <option value="full_time">Full Time</option>
+                                <option value="part_time">Part Time</option>
+                                <option value="internship">Internship</option>
+                                <option value="contract">Contract</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="salary" class="form-label">Salary</label>
+                        <input type="text" class="form-control" id="salary" placeholder="e.g., 50000-70000 or Negotiable" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Job Description</label>
+                        <textarea class="form-control" id="description" rows="5" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="requirements" class="form-label">Requirements</label>
+                        <textarea class="form-control" id="requirements" rows="4"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Post Job</button>
+                </form>
+
+                <div id="message" class="mt-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Check if user is employer
+    const role = localStorage.getItem('user_role');
+    if (role !== 'employer') {
+        alert('Only employers can post jobs');
+        window.location.href = '/';
+    }
+
+    document.getElementById('postJobForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login/';
+            return;
+        }
+
+        const formData = {
+            title: document.getElementById('title').value,
+            company_name: document.getElementById('company_name').value,
+            location: document.getElementById('location').value,
+            job_type: document.getElementById('job_type').value,
+            salary: document.getElementById('salary').value,
+            description: document.getElementById('description').value,
+            requirements: document.getElementById('requirements').value
+        };
+
+        const messageDiv = document.getElementById('message');
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/jobs/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="alert alert-success">Job posted successfully!</div>';
+                document.getElementById('postJobForm').reset();
+                setTimeout(() => {
+                    window.location.href = '/my-jobs/';
+                }, 2000);
+            } else {
+                messageDiv.innerHTML = `<div class="alert alert-danger">${data.error || 'Failed to post job'}</div>`;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            messageDiv.innerHTML = '<div class="alert alert-danger">An error occurred.</div>';
+        }
+    });
+</script>
+{% endblock %}

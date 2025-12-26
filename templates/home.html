@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Listings - HireHub{% endblock %}
+
+{% block content %}
+<div class="slide-in-up">
+    <div style="margin-bottom: 3rem;">
+        <h1 class="section-title">Available Opportunities</h1>
+        <p class="section-subtitle">Discover your next career opportunity</p>
+    </div>
+
+    <div id="loading" class="text-center" style="padding: 3rem;">
+        <div class="spinner-border"></div>
+        <p style="margin-top: 1rem; color: var(--neutral-600);">Loading opportunities...</p>
+    </div>
+
+    <div id="jobs-container" class="row">
+    </div>
+
+    <div id="no-jobs" style="display: none; text-align: center; padding: 3rem;">
+        <h3 style="color: var(--neutral-600);">No jobs available at the moment</h3>
+        <p style="color: var(--neutral-500);">Check back later for new opportunities</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function loadJobs() {
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/jobs/');
+            const jobs = await response.json();
+
+            document.getElementById('loading').style.display = 'none';
+
+            const container = document.getElementById('jobs-container');
+            container.innerHTML = '';
+
+            if (jobs.length === 0) {
+                document.getElementById('no-jobs').style.display = 'block';
+                return;
+            }
+
+            jobs.forEach((job, index) => {
+                const jobCard = document.createElement('div');
+                jobCard.className = 'col-md-6 col-lg-4 fade-in';
+                jobCard.style.animationDelay = `${index * 0.05}s`;
+
+                const postedDate = new Date(job.posted_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                jobCard.innerHTML = `
+                    <div class="card job-card">
+                        <div class="card-body">
+                            <div class="job-company">${job.company_name || 'Company'}</div>
+                            <h3 class="job-title">${job.title}</h3>
+
+                            <div class="job-meta">
+                                <div class="job-meta-item">
+                                    <span>📍</span>
+                                    <span>${job.location}</span>
+                                </div>
+                                <div class="job-type-badge">${job.job_type}</div>
+                            </div>
+
+                            <div style="margin: 1rem 0; padding: 1rem 0; border-top: 1px solid var(--neutral-200); border-bottom: 1px solid var(--neutral-200);">
+                                <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+                                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--primary);">${job.salary || 'Competitive'}</span>
+                                    <span style="font-size: 0.85rem; color: var(--neutral-600);">per year</span>
+                                </div>
+                            </div>
+
+                            <div class="job-footer">
+                                <span style="font-size: 0.85rem; color: var(--neutral-500);">Posted ${postedDate}</span>
+                                <a href="/job/${job.id}/" class="btn btn-primary btn-sm">View Details</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(jobCard);
+            });
+
+        } catch (error) {
+            console.error('Error loading jobs:', error);
+            document.getElementById('loading').innerHTML = '<div class="alert alert-danger">Error loading jobs. Please try again later.</div>';
+        }
+    }
+
+    loadJobs();
+</script>
+{% endblock %}

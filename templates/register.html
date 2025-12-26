@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Register - HireHub{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 60vh;">
+    <div class="container-sm slide-in-up">
+        <div class="card">
+            <div class="card-body" style="padding: 3rem;">
+                <div style="text-align: center; margin-bottom: 2rem;">
+                    <div style="font-size: 2.5rem; margin-bottom: 1rem;">💼</div>
+                    <h2 style="margin-bottom: 0.5rem;">Create Account</h2>
+                    <p style="color: var(--neutral-600);">Join our growing community</p>
+                </div>
+
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input
+                            type="text"
+                            class="form-control"
+                            id="username"
+                            placeholder="Choose a username"
+                            required
+                            autocomplete="username"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email" class="form-label">Email Address</label>
+                        <input
+                            type="email"
+                            class="form-control"
+                            id="email"
+                            placeholder="Enter your email"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input
+                            type="password"
+                            class="form-control"
+                            id="password"
+                            placeholder="Create a strong password"
+                            required
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password_confirm" class="form-label">Confirm Password</label>
+                        <input
+                            type="password"
+                            class="form-control"
+                            id="password_confirm"
+                            placeholder="Confirm your password"
+                            required
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role" class="form-label">I am a...</label>
+                        <select class="form-control" id="role" required>
+                            <option value="">Select your role</option>
+                            <option value="job_seeker">Job Seeker</option>
+                            <option value="employer">Employer</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100" style="padding: 0.75rem; font-size: 1rem; font-weight: 600;">
+                        Create Account
+                    </button>
+                </form>
+
+                <div id="message" style="margin-top: 1.5rem;"></div>
+
+                <div style="margin-top: 2rem; padding: 1.5rem; background-color: var(--neutral-50); border-radius: var(--border-radius); text-align: center;">
+                    <p style="margin: 0; color: var(--neutral-700);">
+                        Already have an account?
+                        <a href="/login/" style="color: var(--primary); font-weight: 600; text-decoration: none;">Sign in</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const username = document.getElementById('username').value;
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const passwordConfirm = document.getElementById('password_confirm').value;
+        const role = document.getElementById('role').value;
+        const messageDiv = document.getElementById('message');
+        const submitBtn = document.querySelector('#registerForm button[type="submit"]');
+
+        if (password !== passwordConfirm) {
+            messageDiv.innerHTML = '<div class="alert alert-danger">Passwords do not match.</div>';
+            return;
+        }
+
+        if (password.length < 6) {
+            messageDiv.innerHTML = '<div class="alert alert-warning">Password must be at least 6 characters long.</div>';
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Creating account...';
+
+        try {
+    const response = await fetch('http://127.0.0.1:8000/api/accounts/register/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: username,
+            email: email,
+            password: password,
+            password2: password,   
+            role: role,
+            phone: "",   
+            first_name: "",
+            last_name: ""
+        })
+    });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="alert alert-success">Account created successfully! Redirecting to login...</div>';
+
+                setTimeout(() => {
+                    window.location.href = '/login/';
+                }, 2000);
+            } else {
+                const errorMsg = data.error || data.message || 'Registration failed. Please try again.';
+                messageDiv.innerHTML = `<div class="alert alert-danger">${errorMsg}</div>`;
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Create Account';
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            messageDiv.innerHTML = '<div class="alert alert-danger">An error occurred. Please try again.</div>';
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Create Account';
+        }
+    });
+</script>
+{% endblock %}

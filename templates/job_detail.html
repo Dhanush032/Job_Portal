@@ -1,0 +1,246 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Details - HireHub{% endblock %}
+
+{% block content %}
+<div id="loading" class="text-center" style="padding: 3rem;">
+    <div class="spinner-border"></div>
+    <p style="margin-top: 1rem; color: var(--neutral-600);">Loading job details...</p>
+</div>
+
+<div id="job-detail" style="display: none;">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="slide-in-up">
+                <div style="margin-bottom: 2rem;">
+                    <a href="/" style="color: var(--primary); font-weight: 600; text-decoration: none;">← Back to Jobs</a>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary">
+                        <div style="display: flex; justify-content: space-between; align-items: start; gap: 1rem;">
+                            <div>
+                                <h2 id="job-title" style="color: white; margin-bottom: 0.5rem;"></h2>
+                                <p style="color: rgba(255, 255, 255, 0.9); margin: 0;">
+                                    <strong id="job-company"></strong>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                            <div>
+                                <p style="color: var(--neutral-600); font-size: 0.9rem; margin-bottom: 0.25rem;">LOCATION</p>
+                                <p style="font-weight: 600; font-size: 1.1rem;" id="job-location"></p>
+                            </div>
+                            <div>
+                                <p style="color: var(--neutral-600); font-size: 0.9rem; margin-bottom: 0.25rem;">JOB TYPE</p>
+                                <p style="font-weight: 600; font-size: 1.1rem;" id="job-type"></p>
+                            </div>
+                            <div>
+                                <p style="color: var(--neutral-600); font-size: 0.9rem; margin-bottom: 0.25rem;">SALARY</p>
+                                <p style="font-weight: 600; font-size: 1.1rem; color: var(--success);" id="job-salary"></p>
+                            </div>
+                            <div>
+                                <p style="color: var(--neutral-600); font-size: 0.9rem; margin-bottom: 0.25rem;">POSTED</p>
+                                <p style="font-weight: 600; font-size: 1.1rem;" id="job-posted-date"></p>
+                            </div>
+                        </div>
+
+                        <hr style="border: none; border-top: 1px solid var(--neutral-200); margin: 2rem 0;">
+
+                        <div>
+                            <h3 style="margin-bottom: 1rem;">Job Description</h3>
+                            <div style="background-color: var(--neutral-50); padding: 1.5rem; border-radius: var(--border-radius); color: var(--neutral-700); line-height: 1.8;">
+                                <p id="job-description"></p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem;">
+                            <h3 style="margin-bottom: 1rem;">Requirements</h3>
+                            <div style="background-color: var(--neutral-50); padding: 1.5rem; border-radius: var(--border-radius); color: var(--neutral-700); line-height: 1.8;">
+                                <p id="job-requirements"></p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 2rem; padding: 1.5rem; background-color: #f0f9ff; border-left: 4px solid var(--info); border-radius: var(--border-radius);">
+                            <p style="margin: 0; color: var(--neutral-800);">
+                                <strong>Posted by:</strong> <span id="job-posted-by" style="color: var(--primary);"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="slide-in-up" style="animation-delay: 0.1s;">
+                <div class="card" id="apply-card" style="display: none;">
+                    <div class="card-header bg-success" style="background-color: var(--success);">
+                        <h4 style="color: white; margin: 0;">Apply for this Job</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="applyForm" enctype="multipart/form-data">
+                            <div class="form-group">
+                                <label for="resume" class="form-label">Upload Resume</label>
+                                <div style="position: relative; border: 2px dashed var(--primary); border-radius: var(--border-radius); padding: 2rem; text-align: center; cursor: pointer; transition: var(--transition);" id="resume-drop-zone">
+                                    <input type="file" class="form-control" id="resume" required accept=".pdf,.doc,.docx" style="display: none;">
+                                    <p style="margin: 0; color: var(--primary); font-weight: 600;">Choose or drag resume</p>
+                                    <p style="margin: 0.5rem 0 0 0; font-size: 0.85rem; color: var(--neutral-600);">PDF, DOC, or DOCX</p>
+                                    <span id="resume-name" style="display: block; margin-top: 0.5rem; font-size: 0.85rem; color: var(--success); font-weight: 600;"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="cover_letter" class="form-label">Cover Letter (Optional)</label>
+                                <textarea class="form-control" id="cover_letter" placeholder="Share why you're interested in this role..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-success w-100" style="background-color: var(--success);">
+                                Submit Application
+                            </button>
+                        </form>
+                        <div id="apply-message" style="margin-top: 1rem;"></div>
+                    </div>
+                </div>
+
+                <div class="card" id="not-authenticated" style="display: none;">
+                    <div class="card-body text-center">
+                        <p style="color: var(--neutral-600); margin-bottom: 1rem;">Sign in to apply for jobs</p>
+                        <a href="/login/" class="btn btn-primary w-100">Login</a>
+                        <p style="margin-top: 1rem; font-size: 0.9rem; color: var(--neutral-600);">
+                            Don't have an account? <a href="/register/" style="color: var(--primary); font-weight: 600;">Register</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const jobId = "{{ job_id }}";
+
+    async function loadJobDetail() {
+        try {
+            const response = await fetch(`http://127.0.0.1:8000/api/jobs/${jobId}/`);
+            const job = await response.json();
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('job-detail').style.display = 'block';
+
+            document.getElementById('job-title').textContent = job.title;
+            document.getElementById('job-company').textContent = job.company_name;
+            document.getElementById('job-location').textContent = job.location;
+            document.getElementById('job-type').textContent = job.job_type;
+            document.getElementById('job-salary').textContent = job.salary || 'Competitive';
+            document.getElementById('job-posted-by').textContent = job.posted_by?.username || 'Anonymous';
+            document.getElementById('job-posted-date').textContent = new Date(job.posted_date).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+            document.getElementById('job-description').textContent = job.description;
+            document.getElementById('job-requirements').textContent = job.requirements || 'Not specified';
+
+            const role = localStorage.getItem('user_role');
+            const token = localStorage.getItem('access_token');
+
+            if (token && role === 'job_seeker') {
+                document.getElementById('apply-card').style.display = 'block';
+            } else {
+                document.getElementById('not-authenticated').style.display = 'block';
+            }
+
+        } catch (error) {
+            console.error('Error loading job:', error);
+            document.getElementById('loading').innerHTML = '<div class="alert alert-danger">Error loading job details. Please try again.</div>';
+        }
+    }
+
+    const resumeInput = document.getElementById('resume');
+    const resumeDropZone = document.getElementById('resume-drop-zone');
+    const resumeName = document.getElementById('resume-name');
+
+    if (resumeDropZone) {
+        resumeDropZone.addEventListener('click', () => resumeInput.click());
+
+        resumeDropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            resumeDropZone.style.backgroundColor = 'var(--neutral-100)';
+        });
+
+        resumeDropZone.addEventListener('dragleave', () => {
+            resumeDropZone.style.backgroundColor = 'transparent';
+        });
+
+        resumeDropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            resumeDropZone.style.backgroundColor = 'transparent';
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                resumeInput.files = files;
+                resumeName.textContent = files[0].name;
+            }
+        });
+
+        resumeInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                resumeName.textContent = e.target.files[0].name;
+            }
+        });
+    }
+
+    document.getElementById('applyForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login/';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('job_id', jobId);
+        formData.append('resume', document.getElementById('resume').files[0]);
+        formData.append('cover_letter', document.getElementById('cover_letter').value);
+
+        const submitBtn = document.querySelector('#applyForm button[type="submit"]');
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Submitting...';
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/applications/apply/', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+            const messageDiv = document.getElementById('apply-message');
+
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="alert alert-success">Application submitted successfully! We\'ll be in touch soon.</div>';
+                document.getElementById('applyForm').reset();
+                resumeName.textContent = '';
+            } else {
+                messageDiv.innerHTML = `<div class="alert alert-danger">${data.error || 'Application failed. Please try again.'}</div>`;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('apply-message').innerHTML = '<div class="alert alert-danger">An error occurred. Please try again later.</div>';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit Application';
+        }
+    });
+
+    loadJobDetail();
+</script>
+{% endblock %}

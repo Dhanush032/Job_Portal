@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications - HireHub{% endblock %}
+
+{% block content %}
+<div class="slide-in-up">
+    <div style="margin-bottom: 3rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 class="section-title">My Applications</h1>
+            <p class="section-subtitle">Track the status of your job applications</p>
+        </div>
+        <a href="/" class="btn btn-outline-primary">Browse More Jobs</a>
+    </div>
+
+    <div id="loading" class="text-center" style="padding: 3rem;">
+        <div class="spinner-border"></div>
+        <p style="margin-top: 1rem; color: var(--neutral-600);">Loading your applications...</p>
+    </div>
+
+    <div id="applications-container"></div>
+
+    <div id="no-applications" style="display: none;">
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">📋</div>
+            <h3 style="color: var(--neutral-700); margin-bottom: 0.5rem;">No applications yet</h3>
+            <p style="color: var(--neutral-600); margin-bottom: 1.5rem;">You haven't applied to any jobs yet. Start exploring opportunities below.</p>
+            <a href="/" class="btn btn-primary">Browse Opportunities</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const role = localStorage.getItem('user_role');
+    if (role !== 'job_seeker') {
+        alert('Only job seekers can view this page');
+        window.location.href = '/';
+    }
+
+    async function loadMyApplications() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please login first');
+            window.location.href = '/login/';
+            return;
+        }
+
+        try {
+            const response = await fetch('http://127.0.0.1:8000/api/applications/my-applications/', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const applications = await response.json();
+
+            document.getElementById('loading').style.display = 'none';
+            const container = document.getElementById('applications-container');
+
+            if (applications.length === 0) {
+                document.getElementById('no-applications').style.display = 'block';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            applications.forEach((app, index) => {
+                const appCard = document.createElement('div');
+                appCard.className = 'card application-card fade-in';
+                appCard.style.animationDelay = `${index * 0.05}s`;
+
+                let statusColor = 'var(--secondary)';
+                let statusIcon = '⏳';
+                let statusText = 'Pending';
+
+                if (app.status === 'accepted') {
+                    statusColor = 'var(--success)';
+                    statusIcon = '✓';
+                    statusText = 'Accepted';
+                } else if (app.status === 'rejected') {
+                    statusColor = 'var(--danger)';
+                    statusIcon = '✕';
+                    statusText = 'Rejected';
+                } else if (app.status === 'under_review') {
+                    statusColor = 'var(--info)';
+                    statusIcon = '👀';
+                    statusText = 'Under Review';
+                }
+
+                const appliedDate = new Date(app.applied_date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                appCard.innerHTML = `
+                    <div class="card-body">
+                        <div style="display: grid; grid-template-columns: 1fr auto; gap: 2rem; align-items: start;">
+                            <div class="application-info">
+                                <div style="display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.5rem;">
+                                    <h4 style="margin: 0; color: var(--neutral-900);">${app.job.title}</h4>
+                                    <span style="display: inline-block; padding: 0.25rem 0.75rem; background-color: ${statusColor}20; color: ${statusColor}; border-radius: 999px; font-size: 0.8rem; font-weight: 600;">
+                                        ${statusIcon} ${statusText}
+                                    </span>
+                                </div>
+                                <p style="margin: 0.5rem 0 1rem 0; color: var(--primary); font-weight: 600;">
+                                    ${app.job.company_name}
+                                </p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 1rem;">
+                                    <div>
+                                        <p style="color: var(--neutral-600); font-size: 0.85rem; margin-bottom: 0.25rem;">LOCATION</p>
+                                        <p style="font-weight: 500; margin: 0;">${app.job.location}</p>
+                                    </div>
+                                    <div>
+                                        <p style="color: var(--neutral-600); font-size: 0.85rem; margin-bottom: 0.25rem;">APPLIED</p>
+                                        <p style="font-weight: 500; margin: 0;">${appliedDate}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="application-actions">
+                                <a href="/job/${app.job.id}/" class="btn btn-secondary btn-sm">View Job</a>
+                                <a href="${app.resume}" target="_blank" class="btn btn-outline-primary btn-sm" style="border: 2px solid var(--primary); background-color: transparent; color: var(--primary);">View Resume</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(appCard);
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('loading').innerHTML = '<div class="alert alert-danger">Error loading applications. Please try again later.</div>';
+        }
+    }
+
+    loadMyApplications();
+</script>
+{% endblock %}
